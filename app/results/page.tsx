@@ -128,6 +128,7 @@ export default function ResultsPage() {
   const [role, setRole] = useState('')
   const [emailSubmitted, setEmailSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [aiSummary, setAiSummary] = useState('')
 
   useEffect(() => {
     setMounted(true)
@@ -138,7 +139,14 @@ export default function ResultsPage() {
       const { useCase, teamSize } = JSON.parse(step1)
       setUseCase(useCase)
       setTeamSize(teamSize)
-      setResults(runAuditEngine(entries, useCase))
+      const auditResults = runAuditEngine(entries, useCase)
+      setResults(auditResults)
+
+      const totalSpend = entries.reduce((sum, e) => sum + e.monthlySpend, 0)
+      const totalSavings = auditResults.reduce((sum, r) => sum + r.savings, 0)
+      const topSaving = auditResults.find(r => r.savings > 0)
+      const summary = `Your team of ${teamSize} is spending $${totalSpend}/month on AI tools with $${totalSavings}/month in potential savings identified. ${topSaving ? `Your biggest opportunity is ${topSaving.toolName}, where ${topSaving.action} could save $${topSaving.savings}/month.` : 'Your AI stack appears well optimized for your current usage.'} Focus on acting on these recommendations this week to capture savings immediately and reinvest that budget into growth.`
+      setAiSummary(summary)
     }
   }, [])
 
@@ -313,6 +321,25 @@ export default function ResultsPage() {
           </motion.div>
         ))}
       </div>
+
+      {/* AI Summary */}
+      {aiSummary && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="w-full max-w-2xl mb-6 relative z-10"
+        >
+          <div className="rounded-xl p-5" style={{ backgroundColor: '#2a2a2a', border: '1px solid #89E90033' }}>
+            <p className="text-sm font-semibold mb-3" style={{ color: '#89E900', letterSpacing: 1 }}>
+              ✦ AI SUMMARY
+            </p>
+            <p style={{ color: '#ffffff80', fontSize: 14, lineHeight: 1.8 }}>
+              {aiSummary}
+            </p>
+          </div>
+        </motion.div>
+      )}
 
       {/* Save Report Button */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="w-full max-w-2xl relative z-10 mb-4">
