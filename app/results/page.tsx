@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { CheckCircle, AlertTriangle, Zap, ArrowRight } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 type ToolEntry = {
   toolId: string
@@ -120,9 +121,13 @@ export default function ResultsPage() {
   const [results, setResults] = useState<AuditResult[]>([])
   const [mounted, setMounted] = useState(false)
   const [useCase, setUseCase] = useState('')
+  const [teamSize, setTeamSize] = useState('')
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [email, setEmail] = useState('')
+  const [company, setCompany] = useState('')
+  const [role, setRole] = useState('')
   const [emailSubmitted, setEmailSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -130,8 +135,9 @@ export default function ResultsPage() {
     const step1 = localStorage.getItem('spendlens-step1')
     if (tools && step1) {
       const entries: ToolEntry[] = JSON.parse(tools)
-      const { useCase } = JSON.parse(step1)
+      const { useCase, teamSize } = JSON.parse(step1)
       setUseCase(useCase)
+      setTeamSize(teamSize)
       setResults(runAuditEngine(entries, useCase))
     }
   }, [])
@@ -143,6 +149,26 @@ export default function ResultsPage() {
   const totalCurrentSpend = results.reduce((sum, r) => sum + r.currentSpend, 0)
   const isHighSavings = totalMonthlySavings > 500
   const isOptimal = totalMonthlySavings < 100
+
+  const handleEmailSubmit = async () => {
+    if (!email) return
+    setSubmitting(true)
+    try {
+      await supabase.from('leads').insert({
+        email,
+        company,
+        role,
+        total_monthly_savings: totalMonthlySavings,
+        total_current_spend: totalCurrentSpend,
+        use_case: useCase,
+        team_size: teamSize,
+      })
+    } catch (err) {
+      console.error('Error saving lead:', err)
+    }
+    setSubmitting(false)
+    setEmailSubmitted(true)
+  }
 
   return (
     <main style={{ backgroundColor: '#222222', minHeight: '100vh' }} className="flex flex-col items-center p-8 overflow-hidden relative">
@@ -324,20 +350,38 @@ export default function ResultsPage() {
                 <>
                   <h3 className="text-2xl font-black mb-2" style={{ color: '#89E900' }}>Get Your Full Report</h3>
                   <p style={{ color: '#ffffff60', fontSize: 14, marginBottom: 24 }}>We'll email you the full audit + notify you when new savings apply to your stack.</p>
+
                   <input
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder="your@email.com *"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    style={{ width: '100%', backgroundColor: '#333', color: 'white', border: '1px solid #89E90033', borderRadius: 10, padding: '12px 16px', fontSize: 15, marginBottom: 12, boxSizing: 'border-box' }}
+                    style={{ width: '100%', backgroundColor: '#333', color: 'white', border: '1px solid #89E90033', borderRadius: 10, padding: '12px 16px', fontSize: 15, marginBottom: 10, boxSizing: 'border-box' }}
                   />
+                  <input
+                    type="text"
+                    placeholder="Company name (optional)"
+                    value={company}
+                    onChange={e => setCompany(e.target.value)}
+                    style={{ width: '100%', backgroundColor: '#333', color: 'white', border: '1px solid #89E90033', borderRadius: 10, padding: '12px 16px', fontSize: 15, marginBottom: 10, boxSizing: 'border-box' }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Your role (optional)"
+                    value={role}
+                    onChange={e => setRole(e.target.value)}
+                    style={{ width: '100%', backgroundColor: '#333', color: 'white', border: '1px solid #89E90033', borderRadius: 10, padding: '12px 16px', fontSize: 15, marginBottom: 16, boxSizing: 'border-box' }}
+                  />
+
                   <motion.button
-                    onClick={() => { if (email) setEmailSubmitted(true) }}
+                    onClick={handleEmailSubmit}
+                    disabled={submitting || !email}
                     whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                    style={{ width: '100%', padding: '14px', borderRadius: 10, fontWeight: 800, fontSize: 16, backgroundColor: '#89E900', color: '#222', border: 'none', cursor: 'pointer', marginBottom: 12 }}
+                    style={{ width: '100%', padding: '14px', borderRadius: 10, fontWeight: 800, fontSize: 16, backgroundColor: email ? '#89E900' : '#89E90044', color: email ? '#222' : '#89E90088', border: 'none', cursor: email ? 'pointer' : 'not-allowed', marginBottom: 12 }}
                   >
-                    Send My Report →
+                    {submitting ? 'Saving...' : 'Send My Report →'}
                   </motion.button>
+
                   <button onClick={() => setShowEmailModal(false)} style={{ width: '100%', color: '#ffffff40', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13 }}>
                     No thanks
                   </button>
@@ -345,7 +389,7 @@ export default function ResultsPage() {
               ) : (
                 <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
                   <CheckCircle size={48} color="#89E900" style={{ margin: '0 auto 16px' }} />
-                  <h3 className="text-2xl font-black mb-2" style={{ color: '#89E900' }}>Report Sent! 🎉</h3>
+                  <h3 className="text-2xl font-black mb-2" style={{ color: '#89E900' }}>Report Saved! 🎉</h3>
                   <p style={{ color: '#ffffff60', fontSize: 14 }}>Check your inbox. We'll be in touch if we find more savings for your stack.</p>
                   <motion.button
                     onClick={() => setShowEmailModal(false)}
