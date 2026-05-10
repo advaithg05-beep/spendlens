@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SpendLens — AI Spend Audit Tool
 
-## Getting Started
+SpendLens is a free web app that audits startup AI tool spending and surfaces savings opportunities. Built for startup founders and engineering managers who want to stop overpaying for AI tools like Cursor, Claude, ChatGPT, and GitHub Copilot.
 
-First, run the development server:
+🔗 **Live URL:** https://spendlens-phi.vercel.app
+
+## Screenshots
+> Add screenshots here after taking them
+
+## Quick Start
 
 ```bash
+git clone https://github.com/advaithg05-beep/spendlens.git
+cd spendlens
+npm install
+cp .env.local.example .env.local  # Add your Supabase keys
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Decisions
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Next.js over plain React** — App Router gives us file-based routing for free, making /tools and /results pages trivial to add without a router library.
 
-## Learn More
+2. **Rule-based audit engine, not AI** — The audit math is hardcoded rules, not LLM calls. This makes it fast, predictable, and auditable by a finance person. AI is only used for the summary paragraph.
 
-To learn more about Next.js, take a look at the following resources:
+3. **localStorage for form persistence** — Simpler than a database for transient form state. Data persists across reloads without requiring auth.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. **Supabase over Firebase** — Postgres gives us proper relational queries if we need to analyze leads later. Firebase's document model would be overkill for a simple leads table.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+5. **Email gate after results, not before** — Showing value first and capturing email after dramatically increases conversion. Gating before the audit would reduce completions.
