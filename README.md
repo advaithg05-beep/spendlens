@@ -5,7 +5,15 @@ SpendLens is a free web app that audits startup AI tool spending and surfaces sa
 🔗 **Live URL:** https://spendlens-phi.vercel.app
 
 ## Screenshots
-> Add screenshots here after taking them
+
+### Homepage
+![Homepage](screenshots/homepage.png)
+
+### Tools Page
+![Tools Page](screenshots/tools.png)
+
+### Results Page
+![Results Page](screenshots/results.png)
 
 ## Quick Start
 
@@ -13,7 +21,7 @@ SpendLens is a free web app that audits startup AI tool spending and surfaces sa
 git clone https://github.com/advaithg05-beep/spendlens.git
 cd spendlens
 npm install
-cp .env.local.example .env.local  # Add your Supabase keys
+cp .env.local.example .env.local
 npm run dev
 ```
 
