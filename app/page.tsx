@@ -277,7 +277,12 @@ export default function Home() {
         {/* CTA Button */}
         <motion.button
           disabled={!teamSize || !useCase}
-          onClick={() => { if (teamSize && useCase) router.push('/tools') }}
+          onClick={() => {
+            if (teamSize && useCase) {
+              localStorage.removeItem('spendlens-tools')
+              router.push('/tools')
+            }
+          }}
           whileHover={teamSize && useCase ? { scale: 1.02, boxShadow: '0 0 40px #89E90088' } : {}}
           whileTap={teamSize && useCase ? { scale: 0.98 } : {}}
           initial={{ opacity: 0 }}
